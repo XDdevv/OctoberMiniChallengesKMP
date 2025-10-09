@@ -78,3 +78,9 @@ internal val SurfaceContainerLowDark = Color(0xFF1A1C1C)
 internal val SurfaceContainerDark = Color(0xFF1E2020)
 internal val SurfaceContainerHighDark = Color(0xFF282A2B)
 internal val SurfaceContainerHighestDark = Color(0xFF333535)
+
+object CursedCountdownColors {
+    val bg = Color(0xff1A0D39)
+    val outlineInactive = Color(0xff2C1B53)
+    val toastBg = Color(0xffFF934A)
+}
