@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 class CursedCountdownViewModel : ViewModel() {
 
@@ -15,7 +16,8 @@ class CursedCountdownViewModel : ViewModel() {
     val state = _state
         .onStart {
             if (!hasLoadedInitialData) {
-                /** Load initial data here **/
+                startTimer()
+
                 hasLoadedInitialData = true
             }
         }
@@ -24,6 +26,12 @@ class CursedCountdownViewModel : ViewModel() {
             started = SharingStarted.WhileSubscribed(5_000L),
             initialValue = CursedCountdownState()
         )
+
+    private fun startTimer() {
+        viewModelScope.launch {
+
+        }
+    }
 
     fun onAction(action: CursedCountdownAction) {
         when (action) {

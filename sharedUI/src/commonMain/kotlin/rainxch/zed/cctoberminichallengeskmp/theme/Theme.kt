@@ -3,9 +3,17 @@ package rainxch.zed.cctoberminichallengeskmp.theme
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.*
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
+import octoberminichallengeskmp.sharedui.generated.resources.Res
+import octoberminichallengeskmp.sharedui.generated.resources.road_rage_regular
+import org.jetbrains.compose.resources.Font
 
 private val LightColorScheme = lightColorScheme(
     primary = PrimaryLight,
@@ -86,9 +94,23 @@ private val DarkColorScheme = darkColorScheme(
 internal val LocalThemeIsDark = compositionLocalOf { mutableStateOf(true) }
 
 @Composable
+fun appTypography(): Typography {
+    val roadRageFont = FontFamily(
+        Font(Res.font.road_rage_regular)
+    )
+    return Typography(
+        displayMedium = TextStyle(
+            fontFamily = roadRageFont,
+            fontWeight = FontWeight.Normal,
+            fontSize = 64.sp
+        )
+    )
+}
+
+@Composable
 internal fun AppTheme(
     onThemeChanged: @Composable (isDark: Boolean) -> Unit,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     val systemIsDark = isSystemInDarkTheme()
     val isDarkState = remember(systemIsDark) { mutableStateOf(systemIsDark) }
@@ -99,7 +121,8 @@ internal fun AppTheme(
         onThemeChanged(!isDark)
         MaterialTheme(
             colorScheme = if (isDark) DarkColorScheme else LightColorScheme,
-            content = { Surface(content = content) }
+            content = { Surface(content = content) },
+            typography = appTypography()
         )
     }
 }
