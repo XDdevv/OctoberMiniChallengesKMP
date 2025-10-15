@@ -84,3 +84,15 @@ object CursedCountdownColors {
     val outlineInactive = Color(0xff2C1B53)
     val toastBg = Color(0xffFF934A)
 }
+
+object SkeletonPuzzleColors {
+    val bg = Color(0xff1A0D39)
+    val surfaceHigher = Color(0xff1A0D39).copy(alpha = .5f)
+    val outlineInactive = Color(0xff2C1B53)
+    val outlineActive = Color(0xff462F78)
+    val outlineError = Color(0xffF7406E)
+    val boneColor = Color(0xffF5F3EF)
+    val slot = Color(0xff533E82)
+    val slotActive = Color(0xff462F78).copy(alpha = .2f)
+    val toastBg = Color(0xffFF934A)
+}
