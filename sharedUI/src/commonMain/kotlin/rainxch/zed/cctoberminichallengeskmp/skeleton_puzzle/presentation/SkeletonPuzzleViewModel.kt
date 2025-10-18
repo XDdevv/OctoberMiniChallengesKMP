@@ -45,8 +45,12 @@ class SkeletonPuzzleViewModel : ViewModel() {
         viewModelScope.launch {
             val puzzles = listOf(
                 Puzzle(
-                    id = LEFT_LEG_ID,
-                    puzzleRes = Res.drawable.leg_left_slot,
+                    id = SKULL_ID,
+                    puzzleRes = Res.drawable.head_slot,
+                ),
+                Puzzle(
+                    id = LEFT_ARM_ID,
+                    puzzleRes = Res.drawable.arm_left_slot,
                 ),
                 Puzzle(
                     id = RIGHT_ARM_ID,
@@ -57,27 +61,23 @@ class SkeletonPuzzleViewModel : ViewModel() {
                     puzzleRes = Res.drawable.rib_cage_slot,
                 ),
                 Puzzle(
-                    id = RIGHT_LEG_ID,
-                    puzzleRes = Res.drawable.leg_right_slot,
-                ),
-                Puzzle(
-                    id = SKULL_ID,
-                    puzzleRes = Res.drawable.head_slot,
-                ),
-                Puzzle(
-                    id = LEFT_ARM_ID,
-                    puzzleRes = Res.drawable.arm_left_slot,
-                ),
-                Puzzle(
                     id = PELVIS_ID,
                     puzzleRes = Res.drawable.pelvis_slot,
+                ),
+                Puzzle(
+                    id = LEFT_LEG_ID,
+                    puzzleRes = Res.drawable.leg_left_slot,
+                ),
+                Puzzle(
+                    id = RIGHT_LEG_ID,
+                    puzzleRes = Res.drawable.leg_right_slot,
                 )
             )
 
             val skeletonPositions = listOf(
                 SkeletonPosition(
                     puzzleId = SKULL_ID,
-                    positionRes = Res.drawable.head_slot  // Slot/outline image
+                    positionRes = Res.drawable.head_slot
                 ),
                 SkeletonPosition(
                     puzzleId = LEFT_ARM_ID,
@@ -108,7 +108,7 @@ class SkeletonPuzzleViewModel : ViewModel() {
             _state.update {
                 it.copy(
                     puzzles = puzzles,
-                    positions = skeletonPositions
+                    positions = skeletonPositions,
                 )
             }
         }
@@ -184,13 +184,11 @@ class SkeletonPuzzleViewModel : ViewModel() {
                     val puzzle = currentState.puzzles.find { it.id == action.puzzle.id }
                         ?: return@update currentState
 
-                    // Calculate center of puzzle piece
                     val puzzleCenter = Offset(
                         x = puzzle.currentPosition.x + puzzle.size.width / 2f,
                         y = puzzle.currentPosition.y + puzzle.size.height / 2f
                     )
 
-                    // Find matching skeleton position by puzzleId
                     val matchingPosition = currentState.positions.find { position ->
                         position.puzzleId == puzzle.id &&
                                 position.rect.contains(puzzleCenter)
@@ -200,14 +198,12 @@ class SkeletonPuzzleViewModel : ViewModel() {
                         puzzles = currentState.puzzles.map { p ->
                             if (p.id == puzzle.id) {
                                 if (matchingPosition != null) {
-                                    // Snap to correct position
                                     p.copy(
                                         currentPosition = matchingPosition.position,
                                         isDragging = false,
                                         isPlaced = true
                                     )
                                 } else {
-                                    // Return to initial position
                                     p.copy(
                                         currentPosition = p.initialPosition,
                                         isDragging = false,
@@ -217,6 +213,18 @@ class SkeletonPuzzleViewModel : ViewModel() {
                             } else p
                         }
                     )
+                }
+
+                if (_state.value.puzzles.all { it.isPlaced }) {
+                    viewModelScope.launch {
+                        _state.update {
+                            it.copy(
+                                isGameFinished = true
+                            )
+                        }
+
+                        _events.send(SkeletonPuzzleEvents.OnMessage("He's back... and he remembers everything!"))
+                    }
                 }
             }
         }

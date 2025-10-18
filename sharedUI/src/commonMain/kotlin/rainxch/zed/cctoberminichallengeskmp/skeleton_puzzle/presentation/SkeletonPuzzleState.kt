@@ -5,5 +5,6 @@ import rainxch.zed.cctoberminichallengeskmp.skeleton_puzzle.presentation.model.P
 
 data class SkeletonPuzzleState(
     val puzzles: List<Puzzle> = emptyList(),
-    val positions: List<SkeletonPosition> = emptyList()
+    val positions: List<SkeletonPosition> = emptyList(),
+    val isGameFinished: Boolean = false,
 )
