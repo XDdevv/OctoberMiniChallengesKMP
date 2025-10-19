@@ -26,4 +26,5 @@ sealed interface SkeletonPuzzleAction {
     ) : SkeletonPuzzleAction
 
     data class OnDragEnd(val puzzle: Puzzle) : SkeletonPuzzleAction
+    data class OnHoverSlot(val slotId: Int?) : SkeletonPuzzleAction
 }

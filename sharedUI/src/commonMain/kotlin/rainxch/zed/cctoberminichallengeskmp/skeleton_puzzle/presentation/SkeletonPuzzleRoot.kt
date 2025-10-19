@@ -5,12 +5,9 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -26,14 +23,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.times
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.delay
@@ -42,6 +39,8 @@ import octoberminichallengeskmp.sharedui.generated.resources.Res
 import octoberminichallengeskmp.sharedui.generated.resources.bg
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
+import rainxch.zed.cctoberminichallengeskmp.skeleton_puzzle.presentation.components.DraggablePuzzlePiece
+import rainxch.zed.cctoberminichallengeskmp.skeleton_puzzle.presentation.components.ErrorPuzzlePiece
 import rainxch.zed.cctoberminichallengeskmp.skeleton_puzzle.presentation.components.PuzzleSlot
 import rainxch.zed.cctoberminichallengeskmp.skeleton_puzzle.presentation.components.SkeletonPositionItem
 import rainxch.zed.cctoberminichallengeskmp.skeleton_puzzle.presentation.locals.LocalGameFinished
@@ -91,10 +90,14 @@ fun SkeletonPuzzleRoot(
         },
         containerColor = SkeletonPuzzleColors.bg
     ) { innerPadding ->
-        SkeletonPuzzleScreen(
-            state = state,
-            onAction = viewModel::onAction,
-        )
+        CompositionLocalProvider(
+            LocalGameFinished provides state.isGameFinished
+        ) {
+            SkeletonPuzzleScreen(
+                state = state,
+                onAction = viewModel::onAction,
+            )
+        }
     }
 }
 
@@ -126,230 +129,231 @@ fun SkeletonPuzzleScreen(
         }
     }
 
-    CompositionLocalProvider(
-        LocalGameFinished provides state.isGameFinished
-    ) {
-        Box(
-            modifier = modifier.fillMaxSize()
+    Box(modifier = modifier.fillMaxSize()) {
+        // Background
+        Image(
+            painter = painterResource(Res.drawable.bg),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize()
+        )
+
+        BoxWithConstraints(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp)
         ) {
-            Image(
-                painter = painterResource(Res.drawable.bg),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize()
+            val screenWidth = maxWidth
+            val screenHeight = maxHeight
+
+            val columns = 4f
+            val spacingPercent = 0.015f
+            val spacing = screenWidth * spacingPercent
+            val totalSpacing = spacing * (columns - 1)
+            val cellWidth = (screenWidth - totalSpacing) / columns
+            val cellHeight = cellWidth * 1.3f
+
+            fun getX(column: Float): Dp = cellWidth * column + spacing * column
+            fun getY(row: Float): Dp = cellHeight * row + spacing * row
+
+            val skeletonHeight = cellHeight * 3.5f + spacing * 2.5f
+            val topOffset = (screenHeight - skeletonHeight - cellHeight * 2.5f - spacing * 4) / 3
+
+            Box(modifier = Modifier.fillMaxSize()) {
+                // ============ SKELETON POSITIONS ============
+
+                SkeletonPositionItem(
+                    position = state.positions.find { it.puzzleId == SKULL_ID },
+                    onAction = onAction,
+                    isPlaced = state.puzzles.find { it.id == SKULL_ID }?.isPlaced == true,
+                    isHovered = state.hoveredSlotId == SKULL_ID,
+                    modifier = Modifier
+                        .offset(x = getX(1.5f) - cellWidth * 0.25f, y = topOffset + getY(0f))
+                        .size(cellWidth * 1.5f, cellHeight * 0.9f)
+                        .graphicsLayer { rotationZ = skullRotation.value }
+                )
+
+                SkeletonPositionItem(
+                    position = state.positions.find { it.puzzleId == LEFT_ARM_ID },
+                    onAction = onAction,
+                    isPlaced = state.puzzles.find { it.id == LEFT_ARM_ID }?.isPlaced == true,
+                    isHovered = state.hoveredSlotId == LEFT_ARM_ID,
+                    modifier = Modifier
+                        .offset(x = getX(0.6f), y = topOffset + getY(0.6f))
+                        .size(cellWidth * 0.7f, cellHeight * 2f + spacing)
+                        .graphicsLayer { rotationZ = leftArmRotation.value }
+                )
+
+                SkeletonPositionItem(
+                    position = state.positions.find { it.puzzleId == RIGHT_ARM_ID },
+                    onAction = onAction,
+                    isPlaced = state.puzzles.find { it.id == RIGHT_ARM_ID }?.isPlaced == true,
+                    isHovered = state.hoveredSlotId == RIGHT_ARM_ID,
+                    modifier = Modifier
+                        .offset(x = getX(2.4f) + cellWidth * 0.3f, y = topOffset + getY(0.6f))
+                        .size(cellWidth * 0.7f, cellHeight * 2f + spacing)
+                        .graphicsLayer { rotationZ = rightArmRotation.value }
+                )
+
+                SkeletonPositionItem(
+                    position = state.positions.find { it.puzzleId == RIBCAGE_ID },
+                    onAction = onAction,
+                    isPlaced = state.puzzles.find { it.id == RIBCAGE_ID }?.isPlaced == true,
+                    isHovered = state.hoveredSlotId == RIBCAGE_ID,
+                    modifier = Modifier
+                        .offset(x = getX(1.4f) - cellWidth * 0.15f, y = topOffset + getY(0.9f))
+                        .size(cellWidth * 1.5f, cellHeight * 1f)
+                )
+
+                SkeletonPositionItem(
+                    position = state.positions.find { it.puzzleId == PELVIS_ID },
+                    onAction = onAction,
+                    isPlaced = state.puzzles.find { it.id == PELVIS_ID }?.isPlaced == true,
+                    isHovered = state.hoveredSlotId == PELVIS_ID,
+                    modifier = Modifier
+                        .offset(x = getX(1.4f) - cellWidth * 0.15f, y = topOffset + getY(1.85f))
+                        .size(cellWidth * 1.5f, cellHeight * 0.75f)
+                )
+
+                SkeletonPositionItem(
+                    position = state.positions.find { it.puzzleId == LEFT_LEG_ID },
+                    onAction = onAction,
+                    isPlaced = state.puzzles.find { it.id == LEFT_LEG_ID }?.isPlaced == true,
+                    isHovered = state.hoveredSlotId == LEFT_LEG_ID,
+                    modifier = Modifier
+                        .offset(x = getX(1.2f), y = topOffset + getY(2.55f))
+                        .size(cellWidth * 0.7f, cellHeight * 1.8f)
+                )
+
+                SkeletonPositionItem(
+                    position = state.positions.find { it.puzzleId == RIGHT_LEG_ID },
+                    onAction = onAction,
+                    isPlaced = state.puzzles.find { it.id == RIGHT_LEG_ID }?.isPlaced == true,
+                    isHovered = state.hoveredSlotId == RIGHT_LEG_ID,
+                    modifier = Modifier
+                        .offset(x = getX(2.1f), y = topOffset + getY(2.55f))
+                        .size(cellWidth * 0.7f, cellHeight * 1.8f)
+                )
+
+                // PUZZLES
+
+                val puzzleAreaTop = screenHeight - cellHeight * 2.5f - spacing * 2
+
+                PuzzleSlot(
+                    puzzle = state.puzzles.find { it.id == RIGHT_ARM_ID },
+                    onAction = onAction,
+                    modifier = Modifier
+                        .offset(x = getX(0.8f), y = puzzleAreaTop)
+                        .size(cellWidth * 0.7f, cellHeight * 1.6f)
+                )
+
+                PuzzleSlot(
+                    puzzle = state.puzzles.find { it.id == RIGHT_LEG_ID },
+                    onAction = onAction,
+                    modifier = Modifier
+                        .offset(x = getX(2.9f), y = puzzleAreaTop)
+                        .size(cellWidth * 0.7f, cellHeight * 1.6f)
+                )
+
+                PuzzleSlot(
+                    puzzle = state.puzzles.find { it.id == RIBCAGE_ID },
+                    onAction = onAction,
+                    modifier = Modifier
+                        .offset(x = getX(1.7f), y = puzzleAreaTop)
+                        .size(cellWidth * 1.1f, cellHeight * 0.8f)
+                )
+
+                PuzzleSlot(
+                    puzzle = state.puzzles.find { it.id == LEFT_ARM_ID },
+                    onAction = onAction,
+                    modifier = Modifier
+                        .offset(x = getX(1.8f), y = puzzleAreaTop + cellHeight * .8f + spacing)
+                        .size(cellWidth * 0.7f, cellHeight * 1.6f)
+                )
+
+                PuzzleSlot(
+                    puzzle = state.puzzles.find { it.id == SKULL_ID },
+                    onAction = onAction,
+                    modifier = Modifier
+                        .offset(x = getX(0f), y = puzzleAreaTop + cellHeight * 1.6f + spacing)
+                        .size(cellWidth * 1.4f, cellHeight * .9f)
+                )
+
+                PuzzleSlot(
+                    puzzle = state.puzzles.find { it.id == LEFT_LEG_ID },
+                    onAction = onAction,
+                    modifier = Modifier
+                        .offset(x = getX(0f), y = puzzleAreaTop)
+                        .size(cellWidth * 0.7f, cellHeight * 1.6f)
+                )
+
+                PuzzleSlot(
+                    puzzle = state.puzzles.find { it.id == PELVIS_ID },
+                    onAction = onAction,
+                    modifier = Modifier
+                        .offset(x = getX(2.8f), y = puzzleAreaTop + cellHeight * 1.65f + spacing)
+                        .size(cellWidth * 1.2f, cellHeight * 0.7f)
+                )
+            }
+        }
+
+        // ============ DRAGGABLE OVERLAY ============
+        val density = LocalDensity.current
+
+        // Track which slot is being hovered
+        val draggingPuzzle = state.puzzles.find { it.isDragging && !it.isPlaced }
+        if (draggingPuzzle != null) {
+            val puzzleCenter = Offset(
+                x = draggingPuzzle.currentPosition.x + draggingPuzzle.size.width / 2f,
+                y = draggingPuzzle.currentPosition.y + draggingPuzzle.size.height / 2f
             )
 
-            BoxWithConstraints(
+            val hoveredSlot = state.positions.find { position ->
+                position.puzzleId == draggingPuzzle.id && position.rect.contains(puzzleCenter)
+            }
+
+            LaunchedEffect(hoveredSlot?.puzzleId) {
+                onAction(SkeletonPuzzleAction.OnHoverSlot(hoveredSlot?.puzzleId))
+            }
+        } else {
+            LaunchedEffect(Unit) {
+                onAction(SkeletonPuzzleAction.OnHoverSlot(null))
+            }
+        }
+
+        state.puzzles.filter { it.isDragging && !it.isPlaced }.forEach { puzzle ->
+            DraggablePuzzlePiece(
+                puzzle = puzzle,
+                onAction = onAction,
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 16.dp)
-                    .navigationBarsPadding()
-            ) {
-                val screenWidth = maxWidth
-                val screenHeight = maxHeight
-
-                val columns = 4f
-                val spacingPercent = 0.015f
-                val spacing = screenWidth * spacingPercent
-
-                val totalSpacing = spacing * (columns - 1)
-                val cellWidth = (screenWidth - totalSpacing) / columns
-                val cellHeight = cellWidth * 1.3f
-
-                fun getX(column: Float): Dp = cellWidth * column + spacing * column
-                fun getY(row: Float): Dp = cellHeight * row + spacing * row
-
-                val skeletonHeight = cellHeight * 3.5f + spacing * 2.5f
-                val topOffset =
-                    (screenHeight - skeletonHeight - cellHeight * 2.5f - spacing * 4) / 3
-
-                Box(modifier = Modifier.fillMaxSize()) {
-
-                    SkeletonPositionItem(
-                        position = state.positions.find { it.puzzleId == SKULL_ID },
-                        onAction = onAction,
-                        isPlaced = state.puzzles.find { it.id == SKULL_ID }?.isPlaced == true,
-                        modifier = Modifier
-                            .offset(x = getX(1.5f) - cellWidth * 0.25f, y = topOffset + getY(0f))
-                            .size(cellWidth * 1.5f, cellHeight * 0.9f)
-                            .graphicsLayer {
-                                rotationZ = skullRotation.value
-                            }
+                    .offset(
+                        x = with(density) { puzzle.currentPosition.x.toDp() },
+                        y = with(density) { puzzle.currentPosition.y.toDp() }
                     )
-
-                    SkeletonPositionItem(
-                        position = state.positions.find { it.puzzleId == LEFT_ARM_ID },
-                        onAction = onAction,
-                        isPlaced = state.puzzles.find { it.id == LEFT_ARM_ID }?.isPlaced == true,
-                        modifier = Modifier
-                            .offset(x = getX(.6f), y = topOffset + getY(0.6f))
-                            .size(cellWidth * 0.7f, cellHeight * 2f + spacing)
-                            .graphicsLayer {
-                                rotationZ = leftArmRotation.value
-                            }
+                    .size(
+                        width = with(density) { puzzle.size.width.toDp() },
+                        height = with(density) { puzzle.size.height.toDp() }
                     )
+            )
+        }
 
-                    SkeletonPositionItem(
-                        position = state.positions.find { it.puzzleId == RIGHT_ARM_ID },
-                        onAction = onAction,
-                        isPlaced = state.puzzles.find { it.id == RIGHT_ARM_ID }?.isPlaced == true,
-                        modifier = Modifier
-                            .offset(x = getX(2.4f) + cellWidth * 0.3f, y = topOffset + getY(0.6f))
-                            .size(cellWidth * 0.7f, cellHeight * 2f + spacing)
-                            .graphicsLayer {
-                                rotationZ = rightArmRotation.value
-                            }
+        // Show error state pieces (pieces that were dropped wrong)
+        state.puzzles.filter { it.showError && !it.isDragging }.forEach { puzzle ->
+            ErrorPuzzlePiece(
+                puzzle = puzzle,
+                modifier = Modifier
+                    .offset(
+                        x = with(density) { puzzle.currentPosition.x.toDp() },
+                        y = with(density) { puzzle.currentPosition.y.toDp() }
                     )
-
-                    SkeletonPositionItem(
-                        position = state.positions.find { it.puzzleId == RIBCAGE_ID },
-                        onAction = onAction,
-                        isPlaced = state.puzzles.find { it.id == RIBCAGE_ID }?.isPlaced == true,
-                        modifier = Modifier
-                            .offset(x = getX(1.4f) - cellWidth * 0.15f, y = topOffset + getY(.9f))
-                            .size(cellWidth * 1.5f, cellHeight * 1f)
+                    .size(
+                        width = with(density) { puzzle.size.width.toDp() },
+                        height = with(density) { puzzle.size.height.toDp() }
                     )
-
-                    SkeletonPositionItem(
-                        position = state.positions.find { it.puzzleId == PELVIS_ID },
-                        onAction = onAction,
-                        isPlaced = state.puzzles.find { it.id == PELVIS_ID }?.isPlaced == true,
-                        modifier = Modifier
-                            .offset(x = getX(1.4f) - cellWidth * 0.15f, y = topOffset + getY(1.85f))
-                            .size(cellWidth * 1.5f, cellHeight * 0.75f)
-                    )
-
-                    SkeletonPositionItem(
-                        position = state.positions.find { it.puzzleId == LEFT_LEG_ID },
-                        onAction = onAction,
-                        isPlaced = state.puzzles.find { it.id == LEFT_LEG_ID }?.isPlaced == true,
-                        modifier = Modifier
-                            .offset(x = getX(1.2f), y = topOffset + getY(2.55f))
-                            .size(cellWidth * 0.7f, cellHeight * 1.8f)
-                    )
-
-                    SkeletonPositionItem(
-                        position = state.positions.find { it.puzzleId == RIGHT_LEG_ID },
-                        onAction = onAction,
-                        isPlaced = state.puzzles.find { it.id == RIGHT_LEG_ID }?.isPlaced == true,
-                        modifier = Modifier
-                            .offset(x = getX(2.1f), y = topOffset + getY(2.55f))
-                            .size(cellWidth * 0.7f, cellHeight * 1.8f)
-                    )
-
-                    val puzzleAreaTop = screenHeight - cellHeight * 2.5f - spacing * 2
-
-                    PuzzleSlot(
-                        puzzle = state.puzzles.find { it.id == LEFT_ARM_ID },
-                        onAction = onAction,
-                        modifier = Modifier
-                            .offset(x = getX(0f), y = puzzleAreaTop)
-                            .size(cellWidth * 0.7f, cellHeight * 1.8f)
-                    )
-
-                    PuzzleSlot(
-                        puzzle = state.puzzles.find { it.id == LEFT_LEG_ID },
-                        onAction = onAction,
-                        modifier = Modifier
-                            .offset(x = getX(0.8f), y = puzzleAreaTop)
-                            .size(cellWidth * 0.7f, cellHeight * 1.8f)
-                    )
-
-                    PuzzleSlot(
-                        puzzle = state.puzzles.find { it.id == RIBCAGE_ID },
-                        onAction = onAction,
-                        modifier = Modifier
-                            .offset(x = getX(1.7f), y = puzzleAreaTop)
-                            .size(cellWidth * 1.1f, cellHeight * 0.8f)
-                    )
-
-                    PuzzleSlot(
-                        puzzle = state.puzzles.find { it.id == SPINE_ID },
-                        onAction = onAction,
-                        modifier = Modifier
-                            .offset(x = getX(1.8f), y = puzzleAreaTop + cellHeight * 0.9f)
-                            .size(cellWidth * 0.9f, cellHeight * 1.5f)
-                    )
-
-                    PuzzleSlot(
-                        puzzle = state.puzzles.find { it.id == RIGHT_ARM_ID },
-                        onAction = onAction,
-                        modifier = Modifier
-                            .offset(x = getX(2.9f), y = puzzleAreaTop)
-                            .size(cellWidth * 0.7f, cellHeight * 1.8f)
-                    )
-
-                    PuzzleSlot(
-                        puzzle = state.puzzles.find { it.id == RIGHT_LEG_ID },
-                        onAction = onAction,
-                        modifier = Modifier
-                            .offset(x = getX(1.8f), y = puzzleAreaTop + cellHeight * .8f + spacing)
-                            .size(cellWidth * 0.7f, cellHeight * 1.8f)
-                    )
-
-                    PuzzleSlot(
-                        puzzle = state.puzzles.find { it.id == SKULL_ID },
-                        onAction = onAction,
-                        modifier = Modifier
-                            .offset(x = getX(0f), y = puzzleAreaTop + cellHeight * 1.8f + spacing)
-                            .size(cellWidth * 1.6f, cellHeight)
-                    )
-
-                    PuzzleSlot(
-                        puzzle = state.puzzles.find { it.id == PELVIS_ID },
-                        onAction = onAction,
-                        modifier = Modifier
-                            .offset(x = getX(2.8f), y = puzzleAreaTop + cellHeight * 1.8f + spacing)
-                            .size(cellWidth * 1.2f, cellHeight * 0.7f)
-                    )
-                }
-            }
-
-            val density = LocalDensity.current
-            state.puzzles.filter { it.isDragging && !it.isPlaced }.forEach { puzzle ->
-                Box(
-                    modifier = Modifier
-                        .offset(
-                            x = with(density) { puzzle.currentPosition.x.toDp() },
-                            y = with(density) { puzzle.currentPosition.y.toDp() }
-                        )
-                        .size(
-                            width = with(density) { puzzle.size.width.toDp() },
-                            height = with(density) { puzzle.size.height.toDp() }
-                        )
-                        .rotate(-8f)
-                        .border(2.dp, SkeletonPuzzleColors.outlineError)
-                        .background(SkeletonPuzzleColors.bg)
-                        .padding(4.dp)
-                        .pointerInput(puzzle.id) {
-                            detectDragGestures(
-                                onDrag = { change, dragAmount ->
-                                    change.consume()
-                                    onAction(
-                                        SkeletonPuzzleAction.OnDrag(
-                                            puzzle = puzzle,
-                                            dragAmount = dragAmount
-                                        )
-                                    )
-                                },
-                                onDragEnd = {
-                                    onAction(SkeletonPuzzleAction.OnDragEnd(puzzle))
-                                }
-                            )
-                        },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Image(
-                        painter = painterResource(puzzle.puzzleRes),
-                        contentDescription = null,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                }
-            }
+            )
         }
     }
 }
-
 
 
 @Preview

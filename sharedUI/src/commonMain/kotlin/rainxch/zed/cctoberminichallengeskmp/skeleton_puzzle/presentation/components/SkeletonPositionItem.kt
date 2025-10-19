@@ -1,11 +1,14 @@
 package rainxch.zed.cctoberminichallengeskmp.skeleton_puzzle.presentation.components
 
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
@@ -16,16 +19,35 @@ import rainxch.zed.cctoberminichallengeskmp.skeleton_puzzle.presentation.locals.
 import rainxch.zed.cctoberminichallengeskmp.skeleton_puzzle.presentation.model.SkeletonPosition
 import rainxch.zed.cctoberminichallengeskmp.theme.SkeletonPuzzleColors
 
-
 @Composable
 fun SkeletonPositionItem(
     position: SkeletonPosition?,
     onAction: (SkeletonPuzzleAction) -> Unit,
     isPlaced: Boolean = false,
+    isHovered: Boolean = false, // NEW
     modifier: Modifier = Modifier,
 ) {
-    if (position == null) return
     val isGameFinished = LocalGameFinished.current
+    if (position == null) return
+
+    val backgroundColor by animateColorAsState(
+        targetValue = when {
+            isGameFinished -> Color.Transparent
+            isPlaced -> SkeletonPuzzleColors.bg // Darker green when placed
+            isHovered -> SkeletonPuzzleColors.slotActive // Lighter when hovered
+            else -> SkeletonPuzzleColors.surfaceHigher // Normal bg
+        },
+        label = "bgColor"
+    )
+
+    val borderColor by animateColorAsState(
+        targetValue = when {
+            isGameFinished -> Color.Transparent
+            isHovered -> SkeletonPuzzleColors.outlineActive // Brighter border when hovered
+            else -> SkeletonPuzzleColors.outlineInactive // Normal border
+        },
+        label = "borderColor"
+    )
 
     Image(
         painter = painterResource(position.positionRes),
@@ -33,27 +55,11 @@ fun SkeletonPositionItem(
         colorFilter = ColorFilter.tint(
             if (isPlaced) {
                 SkeletonPuzzleColors.boneColor
-            } else {
-                SkeletonPuzzleColors.slot
-            }
+            } else SkeletonPuzzleColors.slot
         ),
         modifier = modifier
-            .then(
-                if (!isGameFinished) {
-                    Modifier.border(
-                        2.dp, SkeletonPuzzleColors.outlineActive
-                    )
-                } else Modifier
-            )
-            .then(
-                if (!isGameFinished) {
-                    Modifier.background(
-                        if (isPlaced) {
-                            SkeletonPuzzleColors.surfaceHigher
-                        } else SkeletonPuzzleColors.bg
-                    )
-                } else Modifier
-            )
+            .border(2.dp, borderColor)
+            .background(backgroundColor)
             .onGloballyPositioned { coordinates ->
                 val positionInRoot = coordinates.positionInRoot()
                 val size = coordinates.size
@@ -72,6 +78,6 @@ fun SkeletonPositionItem(
                         rect = rect
                     )
                 )
-            },
+            }
     )
 }

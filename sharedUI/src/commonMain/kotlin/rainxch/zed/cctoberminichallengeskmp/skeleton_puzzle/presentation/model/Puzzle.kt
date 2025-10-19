@@ -11,5 +11,6 @@ data class Puzzle(
     val currentPosition: Offset = Offset.Zero,
     val size: IntSize = IntSize.Zero,
     val isDragging: Boolean = false,
-    val isPlaced: Boolean = false
+    val isPlaced: Boolean = false,
+    val showError: Boolean = false
 )

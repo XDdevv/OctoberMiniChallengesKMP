@@ -4,6 +4,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.onStart
@@ -180,52 +181,72 @@ class SkeletonPuzzleViewModel : ViewModel() {
             }
 
             is SkeletonPuzzleAction.OnDragEnd -> {
+                val state = _state.value
+                val puzzle = state.puzzles.find { it.id == action.puzzle.id } ?: return
+
+                val puzzleCenter = Offset(
+                    x = puzzle.currentPosition.x + puzzle.size.width / 2f,
+                    y = puzzle.currentPosition.y + puzzle.size.height / 2f
+                )
+
+                val matchingPosition = state.positions.find { position ->
+                    position.puzzleId == puzzle.id && position.rect.contains(puzzleCenter)
+                }
+
                 _state.update { currentState ->
-                    val puzzle = currentState.puzzles.find { it.id == action.puzzle.id }
-                        ?: return@update currentState
-
-                    val puzzleCenter = Offset(
-                        x = puzzle.currentPosition.x + puzzle.size.width / 2f,
-                        y = puzzle.currentPosition.y + puzzle.size.height / 2f
-                    )
-
-                    val matchingPosition = currentState.positions.find { position ->
-                        position.puzzleId == puzzle.id &&
-                                position.rect.contains(puzzleCenter)
+                    val updatedPuzzles = currentState.puzzles.map { p ->
+                        if (p.id == puzzle.id) {
+                            if (matchingPosition != null) {
+                                // Correct placement
+                                p.copy(
+                                    isDragging = false,
+                                    isPlaced = true,
+                                    showError = false
+                                )
+                            } else {
+                                // Wrong placement - show error
+                                p.copy(
+                                    currentPosition = p.initialPosition,
+                                    isDragging = false,
+                                    showError = true
+                                )
+                            }
+                        } else p
                     }
+
+                    // Check if game is finished AFTER updating
+                    val isGameFinished = updatedPuzzles.all { it.isPlaced }
 
                     currentState.copy(
-                        puzzles = currentState.puzzles.map { p ->
-                            if (p.id == puzzle.id) {
-                                if (matchingPosition != null) {
-                                    p.copy(
-                                        currentPosition = matchingPosition.position,
-                                        isDragging = false,
-                                        isPlaced = true
-                                    )
-                                } else {
-                                    p.copy(
-                                        currentPosition = p.initialPosition,
-                                        isDragging = false,
-                                        isPlaced = false
-                                    )
-                                }
-                            } else p
+                        hoveredSlotId = null,
+                        puzzles = updatedPuzzles,
+                        isGameFinished = isGameFinished
+                    ).also {
+                        if(it.isGameFinished) {
+                            viewModelScope.launch {
+                                _events.send(SkeletonPuzzleEvents.OnMessage("He's back... and he remembers everything!"))
+                            }
                         }
-                    )
-                }
-
-                if (_state.value.puzzles.all { it.isPlaced }) {
-                    viewModelScope.launch {
-                        _state.update {
-                            it.copy(
-                                isGameFinished = true
-                            )
-                        }
-
-                        _events.send(SkeletonPuzzleEvents.OnMessage("He's back... and he remembers everything!"))
                     }
                 }
+
+                // Clear error after 1 second
+                if (matchingPosition == null) {
+                    viewModelScope.launch {
+                        delay(1000)
+                        _state.update { currentState ->
+                            currentState.copy(
+                                puzzles = currentState.puzzles.map { p ->
+                                    if (p.id == puzzle.id) p.copy(showError = false) else p
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+
+            is SkeletonPuzzleAction.OnHoverSlot -> {
+                _state.update { it.copy(hoveredSlotId = action.slotId) }
             }
         }
     }
