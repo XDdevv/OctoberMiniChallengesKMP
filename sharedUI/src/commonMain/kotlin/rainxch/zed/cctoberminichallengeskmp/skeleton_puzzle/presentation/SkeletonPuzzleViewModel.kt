@@ -214,7 +214,6 @@ class SkeletonPuzzleViewModel : ViewModel() {
                         } else p
                     }
 
-                    // Check if game is finished AFTER updating
                     val isGameFinished = updatedPuzzles.all { it.isPlaced }
 
                     currentState.copy(
@@ -230,7 +229,6 @@ class SkeletonPuzzleViewModel : ViewModel() {
                     }
                 }
 
-                // Clear error after 1 second
                 if (matchingPosition == null) {
                     viewModelScope.launch {
                         delay(1000)
@@ -260,4 +258,3 @@ const val RIBCAGE_ID = 4
 const val PELVIS_ID = 5
 const val LEFT_LEG_ID = 6
 const val RIGHT_LEG_ID = 7
-const val SPINE_ID = 8

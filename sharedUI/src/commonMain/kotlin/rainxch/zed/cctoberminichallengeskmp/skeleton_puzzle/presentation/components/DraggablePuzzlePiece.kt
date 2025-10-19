@@ -27,7 +27,7 @@ fun DraggablePuzzlePiece(
     Box(
         modifier = modifier
             .graphicsLayer { rotationZ = -8f }
-            .border(2.dp, SkeletonPuzzleColors.outlineActive) // Normal border while dragging
+            .border(2.dp, SkeletonPuzzleColors.outlineActive)
             .background(SkeletonPuzzleColors.bg)
             .padding(4.dp)
             .pointerInput(puzzle.id) {

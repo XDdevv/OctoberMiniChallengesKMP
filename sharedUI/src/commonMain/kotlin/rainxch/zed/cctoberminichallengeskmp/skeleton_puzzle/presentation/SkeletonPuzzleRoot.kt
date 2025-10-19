@@ -30,7 +30,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.unit.times
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.delay
@@ -130,7 +129,6 @@ fun SkeletonPuzzleScreen(
     }
 
     Box(modifier = modifier.fillMaxSize()) {
-        // Background
         Image(
             painter = painterResource(Res.drawable.bg),
             contentDescription = null,
@@ -160,7 +158,6 @@ fun SkeletonPuzzleScreen(
             val topOffset = (screenHeight - skeletonHeight - cellHeight * 2.5f - spacing * 4) / 3
 
             Box(modifier = Modifier.fillMaxSize()) {
-                // ============ SKELETON POSITIONS ============
 
                 SkeletonPositionItem(
                     position = state.positions.find { it.puzzleId == SKULL_ID },
@@ -235,7 +232,6 @@ fun SkeletonPuzzleScreen(
                         .size(cellWidth * 0.7f, cellHeight * 1.8f)
                 )
 
-                // PUZZLES
 
                 val puzzleAreaTop = screenHeight - cellHeight * 2.5f - spacing * 2
 
@@ -297,10 +293,8 @@ fun SkeletonPuzzleScreen(
             }
         }
 
-        // ============ DRAGGABLE OVERLAY ============
         val density = LocalDensity.current
 
-        // Track which slot is being hovered
         val draggingPuzzle = state.puzzles.find { it.isDragging && !it.isPlaced }
         if (draggingPuzzle != null) {
             val puzzleCenter = Offset(
@@ -337,7 +331,6 @@ fun SkeletonPuzzleScreen(
             )
         }
 
-        // Show error state pieces (pieces that were dropped wrong)
         state.puzzles.filter { it.showError && !it.isDragging }.forEach { puzzle ->
             ErrorPuzzlePiece(
                 puzzle = puzzle,

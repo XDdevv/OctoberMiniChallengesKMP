@@ -26,7 +26,6 @@ fun ErrorPuzzlePiece(
     puzzle: Puzzle,
     modifier: Modifier = Modifier
 ) {
-    // Shake animation for error state
     val infiniteTransition = rememberInfiniteTransition(label = "shake")
     val shake by infiniteTransition.animateFloat(
         initialValue = -3f,
@@ -44,7 +43,7 @@ fun ErrorPuzzlePiece(
                 translationX = shake
                 rotationZ = -8f
             }
-            .border(2.dp, SkeletonPuzzleColors.outlineError) // RED border for error
+            .border(2.dp, SkeletonPuzzleColors.outlineError)
             .background(SkeletonPuzzleColors.bg)
             .padding(4.dp),
         contentAlignment = Alignment.Center

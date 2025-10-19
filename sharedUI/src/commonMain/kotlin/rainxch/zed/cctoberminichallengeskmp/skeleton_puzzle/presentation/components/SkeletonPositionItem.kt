@@ -33,9 +33,9 @@ fun SkeletonPositionItem(
     val backgroundColor by animateColorAsState(
         targetValue = when {
             isGameFinished -> Color.Transparent
-            isPlaced -> SkeletonPuzzleColors.bg // Darker green when placed
-            isHovered -> SkeletonPuzzleColors.slotActive // Lighter when hovered
-            else -> SkeletonPuzzleColors.surfaceHigher // Normal bg
+            isPlaced -> SkeletonPuzzleColors.bg
+            isHovered -> SkeletonPuzzleColors.slotActive
+            else -> SkeletonPuzzleColors.surfaceHigher
         },
         label = "bgColor"
     )
@@ -43,8 +43,8 @@ fun SkeletonPositionItem(
     val borderColor by animateColorAsState(
         targetValue = when {
             isGameFinished -> Color.Transparent
-            isHovered -> SkeletonPuzzleColors.outlineActive // Brighter border when hovered
-            else -> SkeletonPuzzleColors.outlineInactive // Normal border
+            isHovered -> SkeletonPuzzleColors.outlineActive
+            else -> SkeletonPuzzleColors.outlineInactive
         },
         label = "borderColor"
     )
