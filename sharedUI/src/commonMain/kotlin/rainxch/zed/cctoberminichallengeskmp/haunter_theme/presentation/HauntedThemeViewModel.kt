@@ -1,33 +1,25 @@
 package rainxch.zed.cctoberminichallengeskmp.haunter_theme.presentation
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import rainxch.zed.cctoberminichallengeskmp.haunter_theme.presentation.model.HauntedTheme
 
 class HauntedThemeViewModel : ViewModel() {
 
-    private var hasLoadedInitialData = false
-
     private val _state = MutableStateFlow(HauntedThemeState())
-    val state = _state
-        .onStart {
-            if (!hasLoadedInitialData) {
-                /** Load initial data here **/
-                hasLoadedInitialData = true
-            }
-        }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000L),
-            initialValue = HauntedThemeState()
-        )
+    val state = _state.asStateFlow()
 
     fun onAction(action: HauntedThemeAction) {
         when (action) {
-            else -> TODO("Handle actions")
+            HauntedThemeAction.OnThemeToggled -> {
+                _state.update { state ->
+                    state.copy(
+                        currentTheme = state.currentTheme.nextTheme()
+                    )
+                }
+            }
         }
     }
 
