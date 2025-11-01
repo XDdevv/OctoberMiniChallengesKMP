@@ -96,3 +96,8 @@ object SkeletonPuzzleColors {
     val slotActive = Color(0xff462F78).copy(alpha = .2f)
     val toastBg = Color(0xffFF934A)
 }
+
+object HauntedThemeColors {
+    val day = Color(0xffFEEEE2)
+    val night = Color(0xff4D2EAA)
+}

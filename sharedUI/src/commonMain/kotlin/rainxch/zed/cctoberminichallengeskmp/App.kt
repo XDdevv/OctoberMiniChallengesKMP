@@ -2,7 +2,7 @@ package rainxch.zed.cctoberminichallengeskmp
 
 import androidx.compose.runtime.Composable
 import org.jetbrains.compose.ui.tooling.preview.Preview
-import rainxch.zed.cctoberminichallengeskmp.skeleton_puzzle.presentation.SkeletonPuzzleRoot
+import rainxch.zed.cctoberminichallengeskmp.haunter_theme.presentation.HaunterThemeRoot
 import rainxch.zed.cctoberminichallengeskmp.theme.AppTheme
 
 @Preview
@@ -10,5 +10,5 @@ import rainxch.zed.cctoberminichallengeskmp.theme.AppTheme
 fun App(
     onThemeChanged: @Composable (isDark: Boolean) -> Unit = {}
 ) = AppTheme(onThemeChanged) {
-    SkeletonPuzzleRoot()
+    HaunterThemeRoot()
 }
